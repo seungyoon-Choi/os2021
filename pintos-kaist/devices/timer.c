@@ -32,6 +32,30 @@ static void real_time_sleep (int64_t num, int32_t denom);
 /* Sets up the 8254 Programmable Interval Timer (PIT) to
    interrupt PIT_FREQ times per second, and registers the
    corresponding interrupt. */
+
+struct list wakeup_list;
+
+void push_wakeup_list_in_order(const struct list_elem *e);
+
+
+void
+push_wakeup_list_in_order(const struct list_elem *elem) {
+	struct list_elem *e = list_begin(&wakeup_list);
+	if(!list_empty(&wakeup_list)) {
+		struct thread *t1 = list_entry(e, struct thread, elem);
+		struct thread *t2 = list_entry(elem, struct thread, elem);
+
+		while((t1->wakeup_time <= t2->wakeup_time) && (e != list_end(&wakeup_list))) {
+			e = list_next(e);
+			if(e != list_end(&wakeup_list)) {
+				t1 = list_entry(e, struct thread, elem);
+			}
+		}
+	}
+	list_insert(e, elem);
+}
+
+
 void
 timer_init (void) {
 	/* 8254 input frequency divided by TIMER_FREQ, rounded to
@@ -92,9 +116,20 @@ void
 timer_sleep (int64_t ticks) {
 	int64_t start = timer_ticks ();
 
+	struct thread *current_thread;
+	current_thread = thread_current();
+	enum intr_level old_intr_level;
+
 	ASSERT (intr_get_level () == INTR_ON);
-	while (timer_elapsed (start) < ticks)
-		thread_yield ();
+
+	old_intr_level = intr_disable();
+
+	current_thread->wakeup_time = start + ticks;
+
+	push_wakeup_list_in_order(&current_thread->elem);
+	thread_block();
+
+	intr_set_level(old_intr_level);
 }
 
 /* Suspends execution for approximately MS milliseconds. */
@@ -126,6 +161,18 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED) {
 	ticks++;
 	thread_tick ();
+
+	struct thread *t;
+
+	while(!list_empty(&wakeup_list)) {
+		t = list_entry(list_front(&wakeup_list), struct thread, elem);
+		if(t->wakeup_time <= ticks) {
+			list_pop_front(&wakeup_list);
+			thread_unblock(t);
+		} else {
+			break;
+		}
+	}
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer
