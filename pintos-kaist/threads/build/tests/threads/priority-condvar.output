@@ -4,24 +4,26 @@ Kernel command line: -q run priority-condvar
 Pintos booting with: 
 	base_mem: 0x0 ~ 0x9fc00 (Usable: 639 kB)
 	ext_mem: 0x100000 ~ 0x13e0000 (Usable: 19,328 kB)
-Calibrating timer...  78,540,800 loops/s.
+Calibrating timer...  157,081,600 loops/s.
 Boot complete.
 Executing 'priority-condvar':
 (priority-condvar) begin
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) Signaling...
-(priority-condvar) end
-Execution of 'priority-condvar' complete.
+(priority-condvar) Thread priority 23 starting.
+head가 널
+tail이 널
+Interrupt 0x0e (#PF Page-Fault Exception) at rip=80042098cb
+ cr2=0000000000000008 error=               0
+rax 0000000000000000 rbx 0000000000000000 rcx 000000000000000a rdx 0000000000000017
+rsp 0000008004234ec0 rbp 0000008004234f00 rsi 000000000000900f rdi 0000000000000001
+rip 00000080042098cb r8 0000008004234f3c  r9 0000000000000000 r10 0000000000000000
+r11 0000000000000000 r12 0000000000000000 r13 0000000000000000 r14 0000000000000000
+r15 0000000000000000 rflags 00000202
+es: 0010 ds: 0010 cs: 0008 ss: 0010
+Kernel PANIC at ../../threads/interrupt.c:361 in intr_handler(): Unexpected interrupt
+Call stack: 0x80042139c2 0x80042088cd 0x8004208c7f 0x8004209a1a 0x800420a5fd 0x80042199ac 0x80042072f0.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
 Timer: 23 ticks
 Thread: 0 idle ticks, 23 kernel ticks, 0 user ticks
-Console: 756 characters output
-Keyboard: 0 keys pressed
-Powering off...
+Console: 1

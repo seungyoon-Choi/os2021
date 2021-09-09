@@ -47,9 +47,7 @@ push_wakeup_list_in_order(const struct list_elem *elem) {
 
 		while((t1->wakeup_time <= t2->wakeup_time) && (e != list_end(&wakeup_list))) {
 			e = list_next(e);
-			if(e != list_end(&wakeup_list)) {
-				t1 = list_entry(e, struct thread, elem);
-			}
+			t1 = list_entry(e, struct thread, elem);	
 		}
 	}
 	list_insert(e, elem);
