@@ -108,8 +108,17 @@ struct thread {
 	struct intr_frame tf;               /* Information for switching */
 	unsigned magic;                     /* Detects stack overflow. */
 
+	int64_t	wakeup_time;
 
-	int64_t wakeup_time;
+	int prev_priority;
+	struct lock *waiting_lock;
+	struct list donated_by;
+	struct list_elem donator;
+
+	int nice;
+	int recent_cpu;
+
+	struct list_elem all_elem;
 };
 
 /* If false (default), use round-robin scheduler.
@@ -145,5 +154,18 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 void do_iret (struct intr_frame *tf);
+
+void check_highest_priority(void);
+
+void nested_donate(void);
+void remove_lock(struct lock *lock);
+void update_priority(void);
+
+void mlfqs_priority(struct thread *t);
+void mlfqs_recent_cpu (struct thread *t);
+void mlfqs_load_avg(void);
+void mlfqs_increment_recent_cpu(void);
+void mlfqs_recalculate_priority(void);
+void mlfqs_recalculate_recent_cpu(void);
 
 #endif /* threads/thread.h */

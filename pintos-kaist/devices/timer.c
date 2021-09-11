@@ -44,10 +44,10 @@ push_wakeup_list_in_order(const struct list_elem *elem) {
 	if(!list_empty(&wakeup_list)) {
 		struct thread *t1 = list_entry(e, struct thread, elem);
 		struct thread *t2 = list_entry(elem, struct thread, elem);
-
+	
 		while((t1->wakeup_time <= t2->wakeup_time) && (e != list_end(&wakeup_list))) {
 			e = list_next(e);
-			t1 = list_entry(e, struct thread, elem);	
+			t1 = list_entry(e, struct thread, elem);
 		}
 	}
 	list_insert(e, elem);
@@ -160,8 +160,18 @@ timer_interrupt (struct intr_frame *args UNUSED) {
 	ticks++;
 	thread_tick ();
 
+	if(thread_mlfqs) {
+		mlfqs_increment_recent_cpu();
+		if(ticks % 4 == 0) {
+			mlfqs_recalculate_priority();
+			if(ticks % TIMER_FREQ == 0) {
+				mlfqs_recalculate_recent_cpu();
+				mlfqs_load_avg();
+			}
+		}
+	}
 	struct thread *t;
-
+	
 	while(!list_empty(&wakeup_list)) {
 		t = list_entry(list_front(&wakeup_list), struct thread, elem);
 		if(t->wakeup_time <= ticks) {
@@ -193,7 +203,6 @@ too_many_loops (unsigned loops) {
 
 /* Iterates through a simple loop LOOPS times, for implementing
    brief delays.
-
    Marked NO_INLINE because code alignment can significantly
    affect timings, so that if this function was inlined
    differently in different places the results would be difficult
@@ -208,7 +217,6 @@ busy_wait (int64_t loops) {
 static void
 real_time_sleep (int64_t num, int32_t denom) {
 	/* Convert NUM/DENOM seconds into timer ticks, rounding down.
-
 	   (NUM / DENOM) s
 	   ---------------------- = NUM * TIMER_FREQ / DENOM ticks.
 	   1 s / TIMER_FREQ ticks
