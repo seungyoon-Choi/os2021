@@ -157,7 +157,7 @@ void do_iret (struct intr_frame *tf);
 
 void check_highest_priority(void);
 
-void nested_donate(void);
+void donation(struct thread *thread, int depth, int now);
 void remove_lock(struct lock *lock);
 void update_priority(void);
 

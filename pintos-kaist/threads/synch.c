@@ -345,7 +345,7 @@ lock_acquire (struct lock *lock) {
 	if(lock->holder != NULL) {
 		current_thread->waiting_lock = lock;
 		push_donated_by_in_priority_order(&lock->holder->donated_by, &current_thread->donator);
-		nested_donate();
+		donation(current_thread, 8, 1);
 	}
 	
 	sema_down (&lock->semaphore);

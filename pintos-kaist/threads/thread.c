@@ -161,20 +161,17 @@ remove_lock(struct lock *lock) {
 
 }
 
-void
-nested_donate(void) {
-	struct thread *current_thread = thread_current();
-	int priority = current_thread->priority;
 
-	int count = 0;
-	
-	while(count < 8) {
-		if(current_thread->waiting_lock == NULL) {
-			break;
-		}
-		current_thread = current_thread->waiting_lock->holder;
-		current_thread->priority = priority;
-		count++;
+void
+donation(struct thread *thread, int depth, int now) {
+	int priority = thread->priority;
+	if(thread->waiting_lock == NULL) {
+		return;
+	}
+	thread->waiting_lock->holder->priority = priority;
+	now++;
+	if(now < depth) {
+		donation(thread->waiting_lock->holder, depth, now);
 	}
 }
 
@@ -707,6 +704,12 @@ mlfqs_priority(struct thread *t) {
 		return;
 	}
 	t->priority = fp_to_int(add_mixed(div_mixed(t->recent_cpu, -4), PRI_MAX - t->nice*2));
+	if (t->priority > PRI_MAX) {
+		t->priority = PRI_MAX;
+	}
+	if (t->priority < PRI_MIN) {
+		t->priority = PRI_MIN;
+	}
 }
 
 void
